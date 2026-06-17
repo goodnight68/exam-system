@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>智能在线考试系统 V2.0</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+<!-- ===== 登录/注册 ===== -->
+<div id="page-auth" class="page active">
+  <div class="auth-header"><div class="logo">📝</div><h2>智能在线考试系统</h2><p>高效学习 · 智能评测 · 错题回顾</p></div>
+  <div class="auth-tabs">
+    <button class="tab-btn active" data-tab="login">登录</button>
+    <button class="tab-btn" data-tab="register">注册</button>
+  </div>
+  <div class="auth-form" id="form-login">
+    <div class="form-group"><label>用户名</label><input type="text" id="login-username" placeholder="请输入"></div>
+    <div class="form-group"><label>密码</label><input type="password" id="login-password" placeholder="请输入"></div>
+    <button class="btn-primary" onclick="APP.login()">登 录</button>
+    <div style="text-align:center;margin-top:12px;font-size:12px;color:#999;">测试: admin/admin123 · teacher/123456 · student/123456</div>
+  </div>
+  <div class="auth-form hidden" id="form-register">
+    <div class="form-group"><label>用户名</label><input type="text" id="reg-username" placeholder="请输入"></div>
+    <div class="form-group"><label>密码</label><input type="password" id="reg-password" placeholder="6位以上"></div>
+    <div class="form-group"><label>昵称</label><input type="text" id="reg-nickname" placeholder="请输入"></div>
+    <div class="form-group"><label>角色</label><select id="reg-role"><option value="student">学生</option><option value="teacher">教师</option></select></div>
+    <div class="form-group"><label>学号</label><input type="text" id="reg-student-no" placeholder="可选"></div>
+    <div class="form-group"><label>院系</label><input type="text" id="reg-department" placeholder="可选"></div>
+    <button class="btn-primary" onclick="APP.register()">注 册</button>
+  </div>
+</div>
+
+<!-- ===== 主页 ===== -->
+<div id="page-home" class="page">
+  <div class="topbar"><div class="topbar-title">智能考试系统</div><div class="topbar-actions"><span onclick="APP.showPage('profile')">👤</span></div></div>
+
+  <!-- 公告栏（所有角色共享） -->
+  <div style="margin:12px 16px;">
+    <div style="font-weight:700;font-size:14px;margin-bottom:8px;">📢 系统公告</div>
+    <div id="announcement-list"></div>
+  </div>
+
+  <!-- 学生主页 -->
+  <div class="home-content hidden" id="home-student">
+    <div class="banner"><h3>欢迎回来，<span id="home-nickname"></span></h3><p>准备好迎接新的挑战了吗？</p></div>
+    <div class="stats-row" id="student-stats">
+      <div class="stat-item"><span class="stat-num" id="stat-total">0</span><span class="stat-label">参加考试</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-passed">0</span><span class="stat-label">通过</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-avg">0</span><span class="stat-label">平均分</span></div>
+    </div>
+    <div style="display:flex;gap:10px;margin:0 16px 12px;">
+      <button class="btn-secondary" style="flex:1;" onclick="APP.loadPractice()">📝 自由练习</button>
+      <button class="btn-secondary" style="flex:1;" onclick="APP.showPage('wrongbook')">📕 错题本</button>
+    </div>
+    <div class="section-title">📋 可参加的考试</div>
+    <div class="exam-list" id="exam-list"></div>
+  </div>
+
+  <!-- 教师主页 -->
+  <div class="home-content hidden" id="home-teacher">
+    <div class="banner"><h3>教师工作台</h3><p><span id="teacher-nickname"></span>老师，您好</p></div>
+    <div class="stats-row" id="teacher-stats">
+      <div class="stat-item"><span class="stat-num" id="t-stat-q">0</span><span class="stat-label">题目数</span></div>
+      <div class="stat-item"><span class="stat-num" id="t-stat-e">0</span><span class="stat-label">试卷数</span></div>
+      <div class="stat-item"><span class="stat-num" id="t-stat-r">0</span><span class="stat-label">考试人次</span></div>
+      <div class="stat-item"><span class="stat-num" id="t-stat-avg">0</span><span class="stat-label">平均分</span></div>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-item" onclick="APP.showPage('questions')">📚<span>题库管理</span></div>
+      <div class="menu-item" onclick="APP.showPage('exam-manage')">📋<span>试卷管理</span></div>
+      <div class="menu-item" onclick="APP.showPage('score-manage')">📊<span>成绩统计</span></div>
+      <div class="menu-item" onclick="APP.showPage('essay-grade')">✍️<span>批改简答</span></div>
+      <div class="menu-item" onclick="APP.showPage('profile')">👤<span>个人信息</span></div>
+    </div>
+  </div>
+
+  <!-- 管理员主页 -->
+  <div class="home-content hidden" id="home-admin">
+    <div class="banner" style="background:linear-gradient(135deg,#1a1a2e,#16213e)"><h3>🛡️ 管理员控制台</h3><p>系统全局管理</p></div>
+    <div class="stats-row" id="admin-stats">
+      <div class="stat-item"><span class="stat-num" id="a-stat-users">0</span><span class="stat-label">用户数</span></div>
+      <div class="stat-item"><span class="stat-num" id="a-stat-questions">0</span><span class="stat-label">题目数</span></div>
+      <div class="stat-item"><span class="stat-num" id="a-stat-exams">0</span><span class="stat-label">试卷数</span></div>
+      <div class="stat-item"><span class="stat-num" id="a-stat-records">0</span><span class="stat-label">考试人次</span></div>
+      <div class="stat-item"><span class="stat-num" id="a-stat-avg">0</span><span class="stat-label">平均分</span></div>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-item" onclick="APP.showPage('admin-users')">👥<span>用户管理</span></div>
+      <div class="menu-item" onclick="APP.showPage('questions')">📚<span>题库总览</span></div>
+      <div class="menu-item" onclick="APP.showPage('exam-manage')">📋<span>试卷总览</span></div>
+      <div class="menu-item" onclick="APP.showPage('profile')">👤<span>个人信息</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 题库管理 ===== -->
+<div id="page-questions" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('home')">←</button><div class="topbar-title">题库管理</div><button class="btn-add" onclick="APP.showAddQuestion()">+ 添加</button></div>
+  <div class="filter-bar">
+    <select id="q-filter-cat"><option value="">全部分类</option></select>
+    <select id="q-filter-type"><option value="">全部题型</option><option value="single">单选</option><option value="multiple">多选</option><option value="judge">判断</option><option value="fill">填空</option><option value="essay">简答</option></select>
+    <input type="text" id="q-filter-keyword" placeholder="搜索..." style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+    <button class="btn-sm" onclick="APP.doLoadQuestions()">🔍</button>
+  </div>
+  <div class="list-content" id="question-list"></div>
+</div>
+
+<!-- 添加/编辑题目弹窗 -->
+<div class="modal" id="modal-question">
+  <div class="modal-content">
+    <div class="modal-header"><span id="modal-q-title">添加题目</span><button class="btn-close" onclick="APP.closeModal('modal-question')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>分类</label><select id="mq-category"></select></div>
+      <div class="form-group"><label>知识点</label><select id="mq-kp"><option value="">无</option></select></div>
+      <div class="form-group"><label>题型</label><select id="mq-type"><option value="single">单选题</option><option value="multiple">多选题</option><option value="judge">判断题</option><option value="fill">填空题</option><option value="essay">简答题</option></select></div>
+      <div class="form-group"><label>难度</label><select id="mq-difficulty"><option value="easy">简单</option><option value="medium" selected>中等</option><option value="hard">困难</option></select></div>
+      <div class="form-group"><label>题目内容</label><textarea id="mq-content" rows="3" placeholder="请输入"></textarea></div>
+      <div class="form-group"><label>题目图片</label><input type="file" id="mq-image-file" accept="image/*" style="font-size:12px;"><input type="hidden" id="mq-image"><button class="btn-sm" style="background:#17a2b8;margin-top:4px;" onclick="APP.uploadQuestionImage()">上传图片</button><div id="mq-image-preview"></div></div>
+      <div class="form-group" id="mq-options-group"><label>选项（每行一个）</label><textarea id="mq-options" rows="4" placeholder="A. 选项A&#10;B. 选项B&#10;C. 选项C&#10;D. 选项D"></textarea></div>
+      <div class="form-group"><label>正确答案</label><input type="text" id="mq-answer" placeholder="如 A / ABC / 对/错"></div>
+      <div class="form-group"><label>解析</label><textarea id="mq-analysis" rows="2" placeholder="（可选）"></textarea></div>
+      <div class="form-group"><label>分值</label><input type="number" id="mq-score" value="5" min="1" max="100"></div>
+      <input type="hidden" id="mq-edit-id">
+      <button class="btn-primary" onclick="APP.saveQuestion()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 考试页面 ===== -->
+<div id="page-exam" class="page">
+  <div class="exam-header"><div class="exam-info"><span id="exam-title"></span><span class="exam-timer" id="exam-timer">剩余: --:--</span></div></div>
+  <div class="exam-progress"><div class="progress-bar"><div class="progress-fill" id="exam-progress-fill"></div></div><span id="exam-progress-text">0/0</span></div>
+  <div class="exam-questions" id="exam-questions"></div>
+  <div class="exam-footer">
+    <button class="btn-secondary" onclick="APP.prevQuestion()">上一题</button>
+    <span id="exam-current-num">1/0</span>
+    <button class="btn-secondary" onclick="APP.nextQuestion()">下一题</button>
+    <button class="btn-primary" id="btn-submit" onclick="APP.submitExam()">交 卷</button>
+    <button class="btn-primary" id="btn-exit-practice" style="display:none;background:#6c757d;" onclick="APP.exitPractice()">退出练习</button>
+  </div>
+</div>
+
+<!-- ===== 结果页 ===== -->
+<div id="page-result" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('records')">←</button><div class="topbar-title">考试成绩</div></div>
+  <div class="result-card"><div class="result-score" id="result-score">0</div><div class="result-label">分</div><div class="result-status" id="result-status"></div><div class="result-msg" id="result-msg"></div></div>
+  <div class="section-title">📝 答题详情</div>
+  <div class="list-content" id="result-details"></div>
+</div>
+
+<!-- ===== 试卷管理 ===== -->
+<div id="page-exam-manage" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('home')">←</button><div class="topbar-title">试卷管理</div><button class="btn-add" onclick="APP.showCreateExam()">+ 创建</button></div>
+  <div class="list-content" id="exam-manage-list"></div>
+</div>
+
+<div class="modal" id="modal-exam">
+  <div class="modal-content">
+    <div class="modal-header"><span id="modal-exam-title">创建试卷</span><button class="btn-close" onclick="APP.closeModal('modal-exam')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="me-edit-id">
+      <div class="form-group"><label>试卷名称</label><input type="text" id="me-title" placeholder="如：期中测试"></div>
+      <div class="form-group"><label>描述</label><textarea id="me-desc" rows="2"></textarea></div>
+      <div class="form-group"><label>时长(分钟)</label><input type="number" id="me-duration" value="60"></div>
+      <div class="form-group"><label>及格分</label><input type="number" id="me-pass-score" value="60"></div>
+      <div class="form-group"><label>选择题目 (已选 <span id="me-selected-count">0</span>)</label><div class="question-selector" id="question-selector"></div></div>
+      <button class="btn-primary" id="btn-exam-save" onclick="APP.saveExam()">创 建</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-exam-detail">
+  <div class="modal-content">
+    <div class="modal-header"><span id="modal-detail-title">试卷详情</span><button class="btn-close" onclick="APP.closeModal('modal-exam-detail')">✕</button></div>
+    <div class="modal-body" id="modal-detail-body"></div>
+  </div>
+</div>
+
+<!-- ===== 成绩管理 ===== -->
+<div id="page-score-manage" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('home')">←</button><div class="topbar-title">成绩管理</div></div>
+  <div class="section-title">选择试卷查看成绩</div>
+  <div class="list-content" id="score-exam-list"></div>
+  <div class="list-content hidden" id="score-detail-list"></div>
+</div>
+
+<!-- ===== 考试记录 ===== -->
+<div id="page-records" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('home')">←</button><div class="topbar-title">考试记录</div></div>
+  <div class="list-content" id="my-records-list"></div>
+</div>
+
+<!-- ===== 错题本 ===== -->
+<div id="page-wrongbook" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('home')">←</button><div class="topbar-title">错题本</div></div>
+  <div class="stats-row" style="margin:16px;">
+    <div class="stat-item"><span class="stat-num" id="wb-total">0</span><span class="stat-label">错题总数</span></div>
+    <div class="stat-item"><span class="stat-num" id="wb-mastered">0</span><span class="stat-label">已掌握</span></div>
+  </div>
+  <div class="list-content" id="wrongbook-list"></div>
+</div>
+
+<!-- ===== 管理员-用户管理 ===== -->
+<div id="page-admin-users" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('home')">←</button><div class="topbar-title">用户管理</div></div>
+  <div class="list-content" id="admin-users-list"></div>
+</div>
+
+<!-- ===== 管理员-公告管理 ===== -->
+<div id="page-admin-announcements" class="page"></div>
+
+<!-- ===== 管理员-知识点管理 ===== -->
+<div id="page-admin-knowledge" class="page"></div>
+
+<!-- ===== 教师-批改简答 ===== -->
+<div id="page-essay-grade" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('home')">←</button><div class="topbar-title">简答题批改</div></div>
+  <div class="section-title">选择试卷查看待批简答</div>
+  <div class="list-content" id="essay-exam-list"></div>
+  <div class="list-content hidden" id="essay-list"></div>
+</div>
+
+<!-- ===== 个人信息 ===== -->
+<div id="page-profile" class="page">
+  <div class="topbar"><button class="btn-back" onclick="APP.showPage('home')">←</button><div class="topbar-title">个人信息</div></div>
+  <div class="profile-card"><div class="profile-avatar" id="profile-avatar-img" onclick="document.getElementById('avatar-file').click()" style="cursor:pointer;">👤</div><input type="file" id="avatar-file" accept="image/*" style="display:none;" onchange="APP.uploadAvatar()"><div class="profile-name" id="profile-nickname"></div><div class="profile-role" id="profile-role"></div></div>
+  <div class="form-card">
+    <div class="form-group"><label>用户名</label><input type="text" id="profile-username" disabled></div>
+    <div class="form-group"><label>昵称</label><input type="text" id="profile-nickname-input"></div>
+    <div class="form-group"><label>性别</label><select id="profile-gender"><option value="male">男</option><option value="female">女</option><option value="other">其他</option></select></div>
+    <div class="form-group"><label>出生日期</label><input type="date" id="profile-birth-date"></div>
+    <div class="form-group"><label>邮箱</label><input type="email" id="profile-email"></div>
+    <div class="form-group"><label>手机号</label><input type="text" id="profile-phone"></div>
+    <div class="form-group"><label>学号/工号</label><input type="text" id="profile-student-no"></div>
+    <div class="form-group"><label>院系/部门</label><input type="text" id="profile-department"></div>
+    <button class="btn-primary" onclick="APP.updateProfile()">保存</button>
+    <button class="btn-danger" style="margin-top:12px;" onclick="APP.logout()">退出登录</button>
+  </div>
+</div>
+
+<!-- ===== 底部导航 ===== -->
+<div class="tabbar" id="tabbar">
+  <div class="tab-item active" data-page="home" onclick="APP.showPage('home')">🏠<span>首页</span></div>
+  <div class="tab-item" data-page="records" id="tab-records" onclick="APP.showPage('records')">📋<span>记录</span></div>
+  <div class="tab-item" data-page="wrongbook" id="tab-wrongbook" onclick="APP.showPage('wrongbook')">📕<span>错题</span></div>
+  <div class="tab-item" data-page="profile" onclick="APP.showPage('profile')">👤<span>我的</span></div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
