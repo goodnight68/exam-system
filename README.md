@@ -272,9 +272,9 @@ exam-system/
 │   ├── index.js                 # 服务启动入口
 │   ├── db.js                    # 数据库连接配置（改密码在这里）
 │   ├── auth.js                  # 登录验证
-│   ├── init.sql                 # 建表脚本（无数据）
-│   ├── init-db.js               # 执行建表脚本
-│   ├── seed.js                  # 填充测试数据脚本
+│   ├── init.sql                 # 建表脚本（仅空表结构）
+│   ├── init-db.js               # 执行 init.sql 建表（空库）
+│   ├── seed.js                  # 代码脚本：建表+填充测试数据（需Node.js运行）
 │   ├── exam_system_dump.sql     # 完整数据库备份（含测试数据）
 │   └── routes/                  # 各功能模块
 │       ├── user.js              # 用户注册/登录
@@ -307,6 +307,9 @@ A：重新导入数据库备份文件即可：
 ```bash
 mysql -u root -p < server\exam_system_dump.sql
 ```
+
+**Q：`init.sql` 和 `exam_system_dump.sql` 有什么区别？**
+A：`init.sql` 只包含建表语句，数据库是空的（没有账号、题目、试卷），适合从头搭建。`exam_system_dump.sql` 是完整的数据库备份，包含建表语句和全部测试数据（账号、题库、试卷），导入即可用。**推荐使用 `exam_system_dump.sql`**。
 
 **Q：题目中的图片怎么上传？**
 A：教师添加题目时可点击上传图片按钮，图片保存在 `server/uploads/` 目录。
